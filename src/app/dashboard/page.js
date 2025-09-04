@@ -33,6 +33,33 @@ export default function Dashboard() {
     }
   }, [status, session]);
 
+  async function handleDeletePlaylist(playlistId) {
+    if (!confirm("Are you sure you want to delete this playlist?")) return;
+
+    try {
+      const res = await fetch(
+        `https://api.spotify.com/v1/playlists/${playlistId}/followers`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`,
+          },
+        }
+      );
+
+      if (res.ok) {
+        alert("Playlist deleted successfully!");
+        fetchUserPlaylists(session.accessToken); // refresh playlists
+      } else {
+        const data = await res.json();
+        alert(data.error?.message || "Failed to delete playlist.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong while deleting the playlist.");
+    }
+  }
+
   async function fetchUserPlaylists(token) {
     const userRes = await fetch("https://api.spotify.com/v1/me", {
       headers: { Authorization: `Bearer ${token}` },
@@ -230,6 +257,19 @@ export default function Dashboard() {
               >
                 Organize
               </button>
+              <button
+                onClick={() => handleDeletePlaylist(playlist.id)}
+                style={{
+                  backgroundColor: "tomato",
+                  border: "none",
+                  borderRadius: 6,
+                  color: "white",
+                  fontWeight: "bold",
+                  padding: "8px 14px",
+                }}
+              >
+                Delete
+              </button>
             </div>
           ))}
         </section>
@@ -325,6 +365,15 @@ export default function Dashboard() {
                     label="Select an artist"
                     variant="outlined"
                     size="small"
+                    sx={{
+                      backgroundColor: "#fff",
+                      borderRadius: 1,
+                      input: { color: "#121212" }, // text color
+                      label: { color: "#121212" }, // label color
+                    }}
+                    InputLabelProps={{
+                      style: { color: "#121212" },
+                    }}
                   />
                 )}
                 sx={{ marginBottom: 2 }}
@@ -343,7 +392,7 @@ export default function Dashboard() {
                 fontWeight: "bold",
               }}
             >
-              Split
+              Confirm
             </button>
 
             <button
